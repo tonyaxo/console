@@ -12,7 +12,7 @@
 
 // Digest HTTP Authentication
 // To enable, add user: "name" => "password".
-$users = array();
+$users = [];
 $realm = 'Console';
 
 // Console theme.
@@ -20,17 +20,17 @@ $realm = 'Console';
 $theme = 'default';
 
 // Commands
-$commands = array(
+$commands = [
     '*' => '$1',
-);
+];
 
 // Start with this dir.
 $currentDir = __DIR__;
 $allowChangeDir = true;
 
 // Allowed and denied commands.
-$allow = array();
-$deny = array();
+$allow = [];
+$deny = [];
 
 // Next comes the code...
 
@@ -78,6 +78,9 @@ if (!empty($users)) {
 
     // Analyze the PHP_AUTH_DIGEST variable
     if (!($data = httpDigestParse($_SERVER['PHP_AUTH_DIGEST'])) || !isset($users[$data['username']])) {
+        header('HTTP/1.1 401 Unauthorized');
+        header('WWW-Authenticate: Digest realm="' . $realm . '",qop="auth",nonce="' . uniqid() . '",opaque="' . md5($realm) . '"');
+        
         die("Wrong Credentials!\n");
     }
 
@@ -87,6 +90,9 @@ if (!empty($users)) {
     $valid_response = md5($A1 . ':' . $data['nonce'] . ':' . $data['nc'] . ':' . $data['cnonce'] . ':' . $data['qop'] . ':' . $A2);
 
     if ($data['response'] != $valid_response) {
+        header('HTTP/1.1 401 Unauthorized');
+        header('WWW-Authenticate: Digest realm="' . $realm . '",qop="auth",nonce="' . uniqid() . '",opaque="' . md5($realm) . '"');
+        
         die("Wrong Credentials!\n");
     }
 
@@ -475,6 +481,13 @@ $autocomplete = array(
 <?php } ?>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
+    /**
+     *  Default ajax config.
+     */
+    $.ajaxSetup({
+        timeout: 300000
+    });
+    
     /**
      *  History of commands.
      */
